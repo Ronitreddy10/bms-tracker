@@ -119,8 +119,13 @@ def extract_citywide_venues(playwright, url):
                                 vname = add_data.get("venueName", "Unknown Venue")
                                 vcode = add_data.get("venueCode", "")
                                 
+                                raw_showtimes = vc.get("showtimes", [])
+                                if not raw_showtimes:
+                                    for sec in vc.get("showtimesSections", []):
+                                        raw_showtimes.extend(sec.get("showtimes", []))
+                                
                                 showtimes = []
-                                for st in vc.get("showtimes", []):
+                                for st in raw_showtimes:
                                     st_title = st.get("title", "")
                                     st_add = st.get("additionalData", {})
                                     session_id = st_add.get("sessionId", "")

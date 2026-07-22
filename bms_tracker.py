@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-BookMyShow Multi-Format High-Speed Ticket & Row Unblock Tracker
-----------------------------------------------------------------
-Monitors ALL screen formats (Dolby Atmos, 3D, 2D, IMAX, 4DX, PCX HDR) across ALL venues
-at high frequency (1-2 second polling interval) for instant notifications.
+BookMyShow City-Wide Multi-Format High-Speed Tracker
+----------------------------------------------------
+Monitors ALL 45+ THEATRES IN HYDERABAD (ALLU Cinemas Kokapet, Cinepolis TNR,
+Asian Cineplanet, AMB, Prasads, AAA, PVR, INOX, Miraj, etc.) and ALL formats (Dolby Atmos, 3D, 2D, 4DX, IMAX).
 
 USAGE:
-    High-Speed Local Daemon (1-2 sec check interval):
+    Daemon Mode (1-2s Interval):
         python3 bms_tracker.py
 
     Single Check Mode (GitHub Actions):
@@ -22,24 +22,18 @@ import re
 import requests
 from datetime import datetime
 from urllib.parse import urlparse
+from playwright.sync_api import sync_playwright
 
 # ============ CONFIGURATION ============
-# Support comma-separated URLs or single URL to monitor all formats (2D, 3D, Dolby Atmos, IMAX, etc.)
-DEFAULT_URLS = [
-    "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260730",
-    "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00447840/20260730"
-]
-
-BMS_URL_ENV = os.getenv("BMS_URL", "")
-if BMS_URL_ENV:
-    BMS_URLS = [u.strip() for u in BMS_URL_ENV.split(",") if u.strip()]
-else:
-    BMS_URLS = DEFAULT_URLS
+BMS_URL = os.getenv(
+    "BMS_URL",
+    "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260730?etCodes=*&language=english&refEventCode=ET00505091"
+)
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8794059592:AAFdRlSpuRiZYZItgD71DPeO-y6DgNeEaDY")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "1209851846")
 
-# High speed polling interval
+# Polling Interval
 CHECK_INTERVAL_MIN = 1.0
 CHECK_INTERVAL_MAX = 2.0
 MAX_BACKOFF = 30
@@ -49,21 +43,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(SCRIPT_DIR, "bms_state.json")
 LOG_FILE = os.path.join(SCRIPT_DIR, "tracker.log")
 
-# Region resolution mapping
-REGION_MAP = {
-    "chennai":    ("CHEN",   "chennai"),
-    "mumbai":     ("MUMBAI", "mumbai"),
-    "delhi-ncr":  ("NCR",    "delhi-ncr"),
-    "delhi":      ("NCR",    "delhi-ncr"),
-    "bengaluru":  ("BANG",   "bengaluru"),
-    "bangalore":  ("BANG",   "bengaluru"),
-    "hyderabad":  ("HYD",    "hyderabad"),
-    "kolkata":    ("KOLK",   "kolkata"),
-    "pune":       ("PUNE",   "pune"),
-    "kochi":      ("KOCH",   "kochi"),
-}
-
-# Re-use HTTP Session for maximum speed (<100ms request latency)
 session = requests.Session()
 
 
@@ -102,7 +81,6 @@ def parse_url_info(url):
     
     event_code = "ET00505091"
     date_code = "20260730"
-    region_slug = "hyderabad"
     
     for part in path_parts:
         if re.match(r"^ET\d{8,}$", part):
@@ -110,96 +88,71 @@ def parse_url_info(url):
         elif re.match(r"^\d{8}$", part):
             date_code = part
 
-    if "movies" in path_parts:
-        idx = path_parts.index("movies")
-        if idx + 1 < len(path_parts):
-            region_slug = path_parts[idx + 1]
-            
-    region_code = REGION_MAP.get(region_slug.lower(), (region_slug.upper()[:4], region_slug))[0]
-    return event_code, date_code, region_code, region_slug, url
+    return event_code, date_code, url
 
 
-def fetch_showtimes_for_url(url):
-    event_code, date_code, region_code, region_slug, target_url = parse_url_info(url)
-    
-    api_endpoint = "https://in.bookmyshow.com/api/movies-data/v4/showtimes-by-event/primary-dynamic"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "application/json, text/plain, */*",
-        "x-app-code": "WEB",
-        "x-region-code": region_code,
-        "x-region-slug": region_slug,
-        "Referer": target_url
-    }
-    params = {
-        "eventCode": event_code,
-        "dateCode": date_code
-    }
-    
-    response = session.get(api_endpoint, headers=headers, params=params, timeout=5)
-    if response.status_code != 200:
-        raise ValueError(f"BMS API HTTP {response.status_code} for {event_code}")
-        
-    res_json = response.json()
-    data = res_json.get("data", {})
-    widgets = data.get("showtimeWidgets", [])
-    
+def extract_citywide_venues(playwright, url):
+    """
+    Extracts all 45+ theatres and showtimes across Hyderabad from page state.
+    """
     venues = {}
-    for widget in widgets:
-        if widget.get("type") == "groupList":
-            for group in widget.get("data", []):
-                for vc in group.get("data", []):
-                    add_data = vc.get("additionalData", {})
-                    vname = add_data.get("venueName", "Unknown Venue")
-                    vcode = add_data.get("venueCode", "")
-                    
-                    showtimes = []
-                    for st in vc.get("showtimes", []):
-                        st_title = st.get("title", "")
-                        st_add = st.get("additionalData", {})
-                        session_id = st_add.get("sessionId", "")
-                        avail_status = st_add.get("availStatus", "0")
-                        show_time_code = st_add.get("showTime", st_title)
-                        screen_attr = st_add.get("attributes", st.get("screenAttr", "")) or "Standard"
-                        
-                        categories = []
-                        for cat in st_add.get("categories", []):
-                            categories.append({
-                                "price_desc": cat.get("priceDesc", "Standard"),
-                                "price": cat.get("curPrice", "0.00"),
-                                "avail_status": cat.get("availStatus", "0")
-                            })
-                            
-                        showtimes.append({
-                            "time": show_time_code,
-                            "session_id": session_id,
-                            "avail_status": avail_status,
-                            "screen_attr": screen_attr,
-                            "categories": categories,
-                            "target_url": target_url
-                        })
-                        
-                    key = f"{vname}_{event_code}"
-                    venues[key] = {
-                        "venue_name": vname,
-                        "venue_code": vcode,
-                        "event_code": event_code,
-                        "showtimes": showtimes,
-                        "target_url": target_url
-                    }
-                    
+    try:
+        browser = playwright.chromium.launch(headless=True)
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        )
+        page = context.new_page()
+        page.goto(url, wait_until="domcontentloaded", timeout=30000)
+        page.wait_for_timeout(2500)
+        
+        st_func = page.evaluate("() => window.__INITIAL_STATE__ ? window.__INITIAL_STATE__.showtimesFunctionalApi.queries : {}")
+        
+        for qk, qv in st_func.items():
+            if "fetchPrimaryDynamic" in qk and isinstance(qv, dict) and "data" in qv:
+                data = qv["data"].get("data", {})
+                widgets = data.get("showtimeWidgets", [])
+                for w in widgets:
+                    if w.get("type") == "groupList":
+                        for group in w.get("data", []):
+                            for vc in group.get("data", []):
+                                add_data = vc.get("additionalData", {})
+                                vname = add_data.get("venueName", "Unknown Venue")
+                                vcode = add_data.get("venueCode", "")
+                                
+                                showtimes = []
+                                for st in vc.get("showtimes", []):
+                                    st_title = st.get("title", "")
+                                    st_add = st.get("additionalData", {})
+                                    session_id = st_add.get("sessionId", "")
+                                    avail_status = st_add.get("availStatus", "0")
+                                    show_time_code = st_add.get("showTime", st_title)
+                                    screen_attr = st_add.get("attributes", st.get("screenAttr", "")) or "Standard"
+                                    
+                                    categories = []
+                                    for cat in st_add.get("categories", []):
+                                        categories.append({
+                                            "price_desc": cat.get("priceDesc", "Standard"),
+                                            "price": cat.get("curPrice", "0.00"),
+                                            "avail_status": cat.get("availStatus", "0")
+                                        })
+                                        
+                                    showtimes.append({
+                                        "time": show_time_code,
+                                        "session_id": session_id,
+                                        "avail_status": avail_status,
+                                        "screen_attr": screen_attr,
+                                        "categories": categories
+                                    })
+                                    
+                                venues[vname] = {
+                                    "venue_code": vcode,
+                                    "showtimes": showtimes
+                                }
+        browser.close()
+    except Exception as e:
+        log(f"Citywide scan error: {e}")
+        
     return venues
-
-
-def fetch_all_formats():
-    combined = {}
-    for url in BMS_URLS:
-        try:
-            v_dict = fetch_showtimes_for_url(url)
-            combined.update(v_dict)
-        except Exception as e:
-            log(f"Error fetching URL ({url}): {e}")
-    return combined
 
 
 def load_previous_state():
@@ -242,9 +195,8 @@ def format_new_showtime_alert(venue_name: str, showtimes: list, date_str: str, b
     )
 
 
-def run_check_cycle(previous_state):
-    # Obtain date code from first URL
-    _, date_code, _, _, _ = parse_url_info(BMS_URLS[0])
+def run_check_cycle(playwright, previous_state):
+    event_code, date_code, booking_url = parse_url_info(BMS_URL)
     
     try:
         dt_obj = datetime.strptime(date_code, "%Y%m%d")
@@ -254,23 +206,24 @@ def run_check_cycle(previous_state):
     except Exception:
         date_display = date_code
 
-    current_state = fetch_all_formats()
+    current_state = extract_citywide_venues(playwright, BMS_URL)
     
+    if not current_state:
+        log("No venues returned during scan iteration.")
+        return previous_state
+        
     if not previous_state:
-        log("Initial state baseline saved.")
+        log(f"Initial state baseline saved for {len(current_state)} theatres in Hyderabad.")
         save_current_state(current_state)
         return current_state
         
-    for vkey, vdata in current_state.items():
-        vname = vdata["venue_name"]
-        booking_url = vdata.get("target_url", BMS_URLS[0])
-        
-        if vkey not in previous_state:
-            log(f"NEW THEATRE / FORMAT OPENED: {vname}")
+    for vname, vdata in current_state.items():
+        if vname not in previous_state:
+            log(f"NEW THEATRE RELEASED: {vname}")
             msg = format_new_showtime_alert(vname, vdata.get("showtimes", []), date_display, booking_url)
             send_telegram(msg)
         else:
-            prev_shows = {s["session_id"]: s for s in previous_state[vkey].get("showtimes", [])}
+            prev_shows = {s["session_id"]: s for s in previous_state[vname].get("showtimes", [])}
             curr_shows = vdata.get("showtimes", [])
             
             new_shows = [s for s in curr_shows if s["session_id"] not in prev_shows]
@@ -320,26 +273,27 @@ def run_check_cycle(previous_state):
 def main():
     single_run = "--once" in sys.argv
     log("=========================================")
-    log(f"Starting Multi-Format BMS Ticket Tracker ({'Single Check' if single_run else '1-2s Polling Mode'})...")
-    log(f"Monitoring URLs count: {len(BMS_URLS)}")
+    log(f"Starting City-Wide BMS Ticket Tracker ({'Single Check' if single_run else 'Continuous Scanning'})...")
+    log(f"Target URL: {BMS_URL}")
     log("=========================================")
     
     previous_state = load_previous_state()
     
-    if single_run:
-        run_check_cycle(previous_state)
-        return
+    with sync_playwright() as playwright:
+        if single_run:
+            run_check_cycle(playwright, previous_state)
+            return
 
-    consecutive_errors = 0
-    while True:
-        try:
-            previous_state = run_check_cycle(previous_state)
-            consecutive_errors = 0
-            time.sleep(random.uniform(CHECK_INTERVAL_MIN, CHECK_INTERVAL_MAX))
-        except Exception as e:
-            consecutive_errors += 1
-            log(f"Iteration note ({consecutive_errors}): {e}")
-            time.sleep(min(CHECK_INTERVAL_MAX * (1.5 ** consecutive_errors), MAX_BACKOFF))
+        consecutive_errors = 0
+        while True:
+            try:
+                previous_state = run_check_cycle(playwright, previous_state)
+                consecutive_errors = 0
+                time.sleep(random.uniform(CHECK_INTERVAL_MIN, CHECK_INTERVAL_MAX))
+            except Exception as e:
+                consecutive_errors += 1
+                log(f"Iteration note ({consecutive_errors}): {e}")
+                time.sleep(min(CHECK_INTERVAL_MAX * (1.5 ** consecutive_errors), MAX_BACKOFF))
 
 
 if __name__ == "__main__":

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-BookMyShow High-Speed Ticket & Row Unblock Tracker
----------------------------------------------------
-Monitors BookMyShow at high frequency (1-2 second polling interval) for instant
-notifications when seats or rows get unblocked.
+BookMyShow Multi-Format High-Speed Ticket & Row Unblock Tracker
+----------------------------------------------------------------
+Monitors ALL screen formats (Dolby Atmos, 3D, 2D, IMAX, 4DX, PCX HDR) across ALL venues
+at high frequency (1-2 second polling interval) for instant notifications.
 
 USAGE:
-    High-Speed Local / VPS Daemon (1-2 sec check interval):
+    High-Speed Local Daemon (1-2 sec check interval):
         python3 bms_tracker.py
 
-    Single Check Mode:
+    Single Check Mode (GitHub Actions):
         python3 bms_tracker.py --once
 """
 
@@ -24,15 +24,22 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 # ============ CONFIGURATION ============
-BMS_URL = os.getenv(
-    "BMS_URL",
-    "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260730?etCodes=*&language=english&refEventCode=ET00505091"
-)
+# Support comma-separated URLs or single URL to monitor all formats (2D, 3D, Dolby Atmos, IMAX, etc.)
+DEFAULT_URLS = [
+    "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260730",
+    "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00447840/20260730"
+]
+
+BMS_URL_ENV = os.getenv("BMS_URL", "")
+if BMS_URL_ENV:
+    BMS_URLS = [u.strip() for u in BMS_URL_ENV.split(",") if u.strip()]
+else:
+    BMS_URLS = DEFAULT_URLS
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8794059592:AAFdRlSpuRiZYZItgD71DPeO-y6DgNeEaDY")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "1209851846")
 
-# High speed polling interval (1 to 2 seconds for instant detection)
+# High speed polling interval
 CHECK_INTERVAL_MIN = 1.0
 CHECK_INTERVAL_MAX = 2.0
 MAX_BACKOFF = 30
@@ -56,7 +63,7 @@ REGION_MAP = {
     "kochi":      ("KOCH",   "kochi"),
 }
 
-# Re-use HTTP Session for speed (<100ms request latency)
+# Re-use HTTP Session for maximum speed (<100ms request latency)
 session = requests.Session()
 
 
@@ -109,11 +116,11 @@ def parse_url_info(url):
             region_slug = path_parts[idx + 1]
             
     region_code = REGION_MAP.get(region_slug.lower(), (region_slug.upper()[:4], region_slug))[0]
-    return event_code, date_code, region_code, region_slug
+    return event_code, date_code, region_code, region_slug, url
 
 
-def fetch_showtimes_api(url):
-    event_code, date_code, region_code, region_slug = parse_url_info(url)
+def fetch_showtimes_for_url(url):
+    event_code, date_code, region_code, region_slug, target_url = parse_url_info(url)
     
     api_endpoint = "https://in.bookmyshow.com/api/movies-data/v4/showtimes-by-event/primary-dynamic"
     headers = {
@@ -122,7 +129,7 @@ def fetch_showtimes_api(url):
         "x-app-code": "WEB",
         "x-region-code": region_code,
         "x-region-slug": region_slug,
-        "Referer": url
+        "Referer": target_url
     }
     params = {
         "eventCode": event_code,
@@ -131,7 +138,7 @@ def fetch_showtimes_api(url):
     
     response = session.get(api_endpoint, headers=headers, params=params, timeout=5)
     if response.status_code != 200:
-        raise ValueError(f"BMS API returned HTTP {response.status_code}")
+        raise ValueError(f"BMS API HTTP {response.status_code} for {event_code}")
         
     res_json = response.json()
     data = res_json.get("data", {})
@@ -153,7 +160,7 @@ def fetch_showtimes_api(url):
                         session_id = st_add.get("sessionId", "")
                         avail_status = st_add.get("availStatus", "0")
                         show_time_code = st_add.get("showTime", st_title)
-                        screen_attr = st_add.get("attributes", st.get("screenAttr", ""))
+                        screen_attr = st_add.get("attributes", st.get("screenAttr", "")) or "Standard"
                         
                         categories = []
                         for cat in st_add.get("categories", []):
@@ -168,15 +175,31 @@ def fetch_showtimes_api(url):
                             "session_id": session_id,
                             "avail_status": avail_status,
                             "screen_attr": screen_attr,
-                            "categories": categories
+                            "categories": categories,
+                            "target_url": target_url
                         })
                         
-                    venues[vname] = {
+                    key = f"{vname}_{event_code}"
+                    venues[key] = {
+                        "venue_name": vname,
                         "venue_code": vcode,
-                        "showtimes": showtimes
+                        "event_code": event_code,
+                        "showtimes": showtimes,
+                        "target_url": target_url
                     }
                     
     return venues
+
+
+def fetch_all_formats():
+    combined = {}
+    for url in BMS_URLS:
+        try:
+            v_dict = fetch_showtimes_for_url(url)
+            combined.update(v_dict)
+        except Exception as e:
+            log(f"Error fetching URL ({url}): {e}")
+    return combined
 
 
 def load_previous_state():
@@ -197,28 +220,31 @@ def save_current_state(state):
         log(f"Error saving state: {e}")
 
 
-def format_row_unblock_alert(row_name: str, movie_hashtag: str, venue_name: str, showtime: str, date_str: str):
+def format_row_unblock_alert(row_name: str, movie_hashtag: str, venue_name: str, showtime: str, screen_attr: str, date_str: str, booking_url: str):
+    screen_line = f"🎥 <b>Format:</b> {screen_attr}\n" if screen_attr else ""
     return (
         f"🔥 <b>{row_name} rows unblocked</b> for {movie_hashtag} 🍿 at <b>{venue_name}</b>.\n\n"
+        f"{screen_line}"
         f"📅 <b>Date & Time:</b> {date_str}, {showtime}\n"
         f"🎟️ <b>Status:</b> Tickets / Rows Available Now!\n\n"
-        f"🔗 <a href=\"{BMS_URL}\">Book Tickets Now on BookMyShow</a>"
+        f"🔗 <a href=\"{booking_url}\">Book Tickets Now on BookMyShow</a>"
     )
 
 
-def format_new_showtime_alert(venue_name: str, showtimes: list, date_str: str):
-    show_list = ", ".join([f"<b>{s['time']}</b>" for s in showtimes])
+def format_new_showtime_alert(venue_name: str, showtimes: list, date_str: str, booking_url: str):
+    show_list = ", ".join([f"<b>{s['time']}</b> ({s.get('screen_attr', 'Standard')})" for s in showtimes])
     return (
         f"🎬 <b>New Showtimes Released!</b>\n\n"
         f"📍 <b>{venue_name}</b>\n"
         f"📅 <b>Date:</b> {date_str}\n"
         f"⏰ <b>Shows:</b> {show_list}\n\n"
-        f"🔗 <a href=\"{BMS_URL}\">Book Tickets on BookMyShow</a>"
+        f"🔗 <a href=\"{booking_url}\">Book Tickets on BookMyShow</a>"
     )
 
 
 def run_check_cycle(previous_state):
-    event_code, date_code, _, _ = parse_url_info(BMS_URL)
+    # Obtain date code from first URL
+    _, date_code, _, _, _ = parse_url_info(BMS_URLS[0])
     
     try:
         dt_obj = datetime.strptime(date_code, "%Y%m%d")
@@ -228,40 +254,46 @@ def run_check_cycle(previous_state):
     except Exception:
         date_display = date_code
 
-    current_venues = fetch_showtimes_api(BMS_URL)
+    current_state = fetch_all_formats()
     
     if not previous_state:
         log("Initial state baseline saved.")
-        save_current_state(current_venues)
-        return current_venues
+        save_current_state(current_state)
+        return current_state
         
-    for vname, vdata in current_venues.items():
-        if vname not in previous_state:
-            log(f"NEW THEATRE OPENED: {vname}")
-            msg = format_new_showtime_alert(vname, vdata.get("showtimes", []), date_display)
+    for vkey, vdata in current_state.items():
+        vname = vdata["venue_name"]
+        booking_url = vdata.get("target_url", BMS_URLS[0])
+        
+        if vkey not in previous_state:
+            log(f"NEW THEATRE / FORMAT OPENED: {vname}")
+            msg = format_new_showtime_alert(vname, vdata.get("showtimes", []), date_display, booking_url)
             send_telegram(msg)
         else:
-            prev_shows = {s["session_id"]: s for s in previous_state[vname].get("showtimes", [])}
+            prev_shows = {s["session_id"]: s for s in previous_state[vkey].get("showtimes", [])}
             curr_shows = vdata.get("showtimes", [])
             
             new_shows = [s for s in curr_shows if s["session_id"] not in prev_shows]
             if new_shows:
                 log(f"NEW SHOWTIMES at {vname}: {[s['time'] for s in new_shows]}")
-                msg = format_new_showtime_alert(vname, new_shows, date_display)
+                msg = format_new_showtime_alert(vname, new_shows, date_display, booking_url)
                 send_telegram(msg)
                 
             for curr_s in curr_shows:
                 sid = curr_s["session_id"]
+                s_attr = curr_s.get("screen_attr", "")
                 if sid in prev_shows:
                     prev_s = prev_shows[sid]
                     if prev_s.get("avail_status") == "0" and curr_s.get("avail_status") in ["1", "2", "3"]:
-                        log(f"ROW/SHOW UNBLOCKED at {vname} ({curr_s['time']})")
+                        log(f"ROW/SHOW UNBLOCKED at {vname} ({curr_s['time']} - {s_attr})")
                         msg = format_row_unblock_alert(
                             "Row / Tickets",
                             "#SpiderManBrandNewDay",
                             vname,
                             curr_s["time"],
-                            date_display
+                            s_attr,
+                            date_display,
+                            booking_url
                         )
                         send_telegram(msg)
                         
@@ -269,25 +301,27 @@ def run_check_cycle(previous_state):
                     for curr_c in curr_s.get("categories", []):
                         cname = curr_c["price_desc"]
                         if cname in prev_cats and prev_cats[cname] == "0" and curr_c["avail_status"] != "0":
-                            log(f"CATEGORY UNBLOCKED: {cname} at {vname} ({curr_s['time']})")
+                            log(f"CATEGORY UNBLOCKED: {cname} at {vname} ({curr_s['time']} - {s_attr})")
                             msg = format_row_unblock_alert(
                                 f"{cname} / Row",
                                 "#SpiderManBrandNewDay",
                                 vname,
                                 curr_s["time"],
-                                date_display
+                                s_attr,
+                                date_display,
+                                booking_url
                             )
                             send_telegram(msg)
 
-    save_current_state(current_venues)
-    return current_venues
+    save_current_state(current_state)
+    return current_state
 
 
 def main():
     single_run = "--once" in sys.argv
     log("=========================================")
-    log(f"Starting High-Speed BMS Ticket Tracker ({'Single Check' if single_run else '1-2s Polling Mode'})...")
-    log(f"Target URL: {BMS_URL}")
+    log(f"Starting Multi-Format BMS Ticket Tracker ({'Single Check' if single_run else '1-2s Polling Mode'})...")
+    log(f"Monitoring URLs count: {len(BMS_URLS)}")
     log("=========================================")
     
     previous_state = load_previous_state()
@@ -296,9 +330,7 @@ def main():
         run_check_cycle(previous_state)
         return
 
-    # Silent startup — only alerts on real row/showtime changes
     consecutive_errors = 0
-    
     while True:
         try:
             previous_state = run_check_cycle(previous_state)

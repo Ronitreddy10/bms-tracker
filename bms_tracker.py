@@ -296,7 +296,7 @@ def main():
         run_check_cycle(previous_state)
         return
 
-    send_telegram("⚡ <b>High-Speed BMS Tracker Active!</b>\nPolling every 1–2 seconds for instant row unblocks.")
+    # Silent startup — only alerts on real row/showtime changes
     consecutive_errors = 0
     
     while True:

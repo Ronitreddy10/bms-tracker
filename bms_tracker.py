@@ -5,6 +5,9 @@ BookMyShow City-Wide Multi-Format High-Speed Tracker
 Monitors ALL 45+ THEATRES IN HYDERABAD (ALLU Cinemas Kokapet, Cinepolis TNR,
 Asian Cineplanet, AMB, Prasads, AAA, PVR, INOX, Miraj, etc.) and ALL formats (Dolby Atmos, 3D, 2D, 4DX, IMAX).
 
+Direct Deep-Linking:
+Generates direct seat-selection booking links per showtime session!
+
 USAGE:
     Daemon Mode (1-2s Interval):
         python3 bms_tracker.py
@@ -89,6 +92,12 @@ def parse_url_info(url):
             date_code = part
 
     return event_code, date_code, url
+
+
+def get_direct_booking_url(event_code: str, session_id: str, default_url: str):
+    if session_id:
+        return f"https://in.bookmyshow.com/buytickets/spider-man-brand-new-day-hyderabad/movie-hyd-{event_code}-MT/{session_id}"
+    return default_url
 
 
 def extract_citywide_venues(playwright, url):
@@ -185,18 +194,23 @@ def format_row_unblock_alert(row_name: str, movie_hashtag: str, venue_name: str,
         f"{screen_line}"
         f"📅 <b>Date & Time:</b> {date_str}, {showtime}\n"
         f"🎟️ <b>Status:</b> Tickets / Rows Available Now!\n\n"
-        f"🔗 <a href=\"{booking_url}\">Book Tickets Now on BookMyShow</a>"
+        f"🔗 <a href=\"{booking_url}\">Book Tickets Directly on BookMyShow</a>"
     )
 
 
-def format_new_showtime_alert(venue_name: str, showtimes: list, date_str: str, booking_url: str):
-    show_list = ", ".join([f"<b>{s['time']}</b> ({s.get('screen_attr', 'Standard')})" for s in showtimes])
+def format_new_showtime_alert(venue_name: str, showtimes: list, date_str: str, event_code: str, default_url: str):
+    show_lines = []
+    for s in showtimes:
+        s_url = get_direct_booking_url(event_code, s.get("session_id"), default_url)
+        show_lines.append(f"• <a href=\"{s_url}\"><b>{s['time']}</b></a> ({s.get('screen_attr', 'Standard')})")
+        
+    shows_formatted = "\n".join(show_lines) if show_lines else "Showtimes Available"
     return (
         f"🎬 <b>New Showtimes Released!</b>\n\n"
         f"📍 <b>{venue_name}</b>\n"
         f"📅 <b>Date:</b> {date_str}\n"
-        f"⏰ <b>Shows:</b> {show_list}\n\n"
-        f"🔗 <a href=\"{booking_url}\">Book Tickets on BookMyShow</a>"
+        f"⏰ <b>Showtimes & Direct Links:</b>\n{shows_formatted}\n\n"
+        f"🔗 <a href=\"{default_url}\">View All Shows on BookMyShow</a>"
     )
 
 
@@ -225,7 +239,7 @@ def run_check_cycle(playwright, previous_state):
     for vname, vdata in current_state.items():
         if vname not in previous_state:
             log(f"NEW THEATRE RELEASED: {vname}")
-            msg = format_new_showtime_alert(vname, vdata.get("showtimes", []), date_display, booking_url)
+            msg = format_new_showtime_alert(vname, vdata.get("showtimes", []), date_display, event_code, booking_url)
             send_telegram(msg)
         else:
             prev_shows = {s["session_id"]: s for s in previous_state[vname].get("showtimes", [])}
@@ -234,12 +248,14 @@ def run_check_cycle(playwright, previous_state):
             new_shows = [s for s in curr_shows if s["session_id"] not in prev_shows]
             if new_shows:
                 log(f"NEW SHOWTIMES at {vname}: {[s['time'] for s in new_shows]}")
-                msg = format_new_showtime_alert(vname, new_shows, date_display, booking_url)
+                msg = format_new_showtime_alert(vname, new_shows, date_display, event_code, booking_url)
                 send_telegram(msg)
                 
             for curr_s in curr_shows:
                 sid = curr_s["session_id"]
                 s_attr = curr_s.get("screen_attr", "")
+                direct_url = get_direct_booking_url(event_code, sid, booking_url)
+                
                 if sid in prev_shows:
                     prev_s = prev_shows[sid]
                     if prev_s.get("avail_status") == "0" and curr_s.get("avail_status") in ["1", "2", "3"]:
@@ -251,7 +267,7 @@ def run_check_cycle(playwright, previous_state):
                             curr_s["time"],
                             s_attr,
                             date_display,
-                            booking_url
+                            direct_url
                         )
                         send_telegram(msg)
                         
@@ -267,7 +283,7 @@ def run_check_cycle(playwright, previous_state):
                                 curr_s["time"],
                                 s_attr,
                                 date_display,
-                                booking_url
+                                direct_url
                             )
                             send_telegram(msg)
 

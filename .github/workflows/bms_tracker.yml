@@ -1,8 +1,8 @@
-name: BMS Ticket & Row Tracker (Cloud Runner)
+name: BMS High-Speed 24/7 Cloud Tracker (1-2s Loop)
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 concurrency:
@@ -10,11 +10,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tracker-check:
+  high-speed-tracker:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
+        uses: uses/checkout@v4
+        continue-on-error: true
+
+      - name: Checkout Repo
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -28,10 +32,10 @@ jobs:
           pip install requests playwright
           playwright install --with-deps chromium
 
-      - name: Run BMS Tracker Check
+      - name: Run High-Speed 1-2s Continuous Cloud Tracker
         env:
           BMS_URL: ${{ secrets.BMS_URL }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python bms_tracker.py --once
+          python bms_tracker.py

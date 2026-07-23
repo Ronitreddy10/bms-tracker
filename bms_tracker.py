@@ -2,8 +2,8 @@
 """
 BookMyShow Multi-Date & City-Wide High-Speed Ticket Tracker
 ------------------------------------------------------------
-Monitors ALL DATES (July 30, July 31, Aug 1, Aug 2, etc.) and ALL 45+ THEATRES IN HYDERABAD
-for new show releases, new dates opening, and seat/row unblocks.
+Monitors ALL DATES (July 30, July 31, Aug 1, Aug 2, Aug 3, Aug 4, Aug 5, etc.)
+and ALL 45+ THEATRES IN HYDERABAD for new show releases, new dates opening, and seat/row unblocks.
 
 USAGE:
     Daemon Mode (1-2s Interval):
@@ -25,13 +25,14 @@ from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright
 
 # ============ CONFIGURATION ============
-BASE_BUY_URL = os.getenv(
-    "BMS_URL",
-    "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091"
-)
+EVENT_CODE = os.getenv("EVENT_CODE", "ET00505091")
+BASE_BUY_URL = f"https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/{EVENT_CODE}"
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8794059592:AAFdRlSpuRiZYZItgD71DPeO-y6DgNeEaDY")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "1209851846")
+
+# Default active dates to track if dynamic lookup fails
+DEFAULT_DATE_CODES = ["20260730", "20260731", "20260801", "20260802", "20260803", "20260804", "20260805"]
 
 # Polling Interval
 CHECK_INTERVAL_MIN = 1.0
@@ -85,121 +86,130 @@ def format_date_display(date_code: str) -> str:
         return date_code
 
 
-def parse_event_code(url: str) -> str:
-    parsed = urlparse(url)
-    path_parts = [p for p in parsed.path.split("/") if p]
-    for part in path_parts:
-        if re.match(r"^ET\d{8,}$", part):
-            return part
-    return "ET00505091"
-
-
-def extract_all_dates_and_venues(playwright):
-    """
-    Extracts all available date codes dynamically from BookMyShow,
-    then fetches showtimes for all venues across ALL dates!
-    """
-    event_code = parse_event_code(BASE_BUY_URL)
-    base_url = f"https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/{event_code}/"
+def fetch_showtimes_via_api(date_code: str):
+    """Fetches high-speed showtime data directly via API per date."""
+    url = f"https://in.bookmyshow.com/api/movies-data/v4/showtimes-by-event/primary-dynamic"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "x-app-code": "WEB",
+        "x-region-code": "HYD",
+        "x-region-slug": "hyderabad",
+        "Referer": f"{BASE_BUY_URL}/{date_code}"
+    }
+    params = {
+        "eventCode": EVENT_CODE,
+        "dateCode": date_code
+    }
     
-    all_data = {}
-    try:
-        browser = playwright.chromium.launch(headless=True)
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        )
-        page = context.new_page()
+    resp = session.get(url, headers=headers, params=params, timeout=5)
+    if resp.status_code != 200:
+        return {}
         
-        # Initial page load to discover active date codes
-        first_url = base_url + "20260730"
-        page.goto(first_url, wait_until="domcontentloaded", timeout=30000)
-        page.wait_for_timeout(2500)
-        
-        date_codes = page.evaluate("""() => {
-            const state = window.__INITIAL_STATE__;
-            if (!state) return [];
-            const results = [];
-            function searchObj(obj) {
-                if (obj && typeof obj === 'object') {
-                    if (obj.dateCode || obj.showDateCode) {
-                        const d = obj.dateCode || obj.showDateCode;
-                        if (/^[0-9]{8}$/.test(d)) results.push(d);
+    data = resp.json().get("data", {})
+    widgets = data.get("showtimeWidgets", [])
+    
+    venues = {}
+    for widget in widgets:
+        if widget.get("type") == "groupList":
+            for group in widget.get("data", []):
+                for vc in group.get("data", []):
+                    add_data = vc.get("additionalData", {})
+                    vname = add_data.get("venueName", "Unknown Venue")
+                    vcode = add_data.get("venueCode", "")
+                    
+                    raw_showtimes = vc.get("showtimes", [])
+                    if not raw_showtimes:
+                        for sec in vc.get("showtimesSections", []):
+                            raw_showtimes.extend(sec.get("showtimes", []))
+                    
+                    showtimes = []
+                    for st in raw_showtimes:
+                        st_title = st.get("title", "")
+                        st_add = st.get("additionalData", {})
+                        session_id = st_add.get("sessionId", "")
+                        avail_status = st_add.get("availStatus", "0")
+                        show_time_code = st_add.get("showTime", st_title)
+                        screen_attr = st_add.get("attributes", st.get("screenAttr", "")) or "Standard"
+                        
+                        categories = []
+                        for cat in st_add.get("categories", []):
+                            categories.append({
+                                "price_desc": cat.get("priceDesc", "Standard"),
+                                "price": cat.get("curPrice", "0.00"),
+                                "avail_status": cat.get("availStatus", "0")
+                            })
+                            
+                        showtimes.append({
+                            "time": show_time_code,
+                            "session_id": session_id,
+                            "avail_status": avail_status,
+                            "screen_attr": screen_attr,
+                            "categories": categories
+                        })
+                        
+                    venues[vname] = {
+                        "venue_code": vcode,
+                        "showtimes": showtimes
                     }
-                    for (let k in obj) searchObj(obj[k]);
-                }
-            }
-            searchObj(state);
-            return [...new Set(results)].sort();
-        }""")
-        
-        if not date_codes:
-            date_codes = ["20260730", "20260731", "20260801", "20260802"]
-            
-        log(f"Active dates detected on BookMyShow: {date_codes}")
-        
-        for dcode in date_codes:
-            d_url = base_url + dcode
-            page.goto(d_url, wait_until="domcontentloaded", timeout=30000)
+                    
+    return venues
+
+
+def fetch_all_dates_and_venues(playwright=None):
+    """
+    Extracts all dates dynamically and collects all 45+ theatres and showtimes for ALL dates.
+    """
+    date_codes = list(DEFAULT_DATE_CODES)
+    
+    # Try dynamic date discovery via Playwright if available
+    if playwright:
+        try:
+            browser = playwright.chromium.launch(headless=True)
+            context = browser.new_context(
+                user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            )
+            page = context.new_page()
+            page.goto(f"{BASE_BUY_URL}/20260730", wait_until="domcontentloaded", timeout=30000)
             page.wait_for_timeout(2000)
             
-            st_func = page.evaluate(
-                "() => window.__INITIAL_STATE__ && window.__INITIAL_STATE__.showtimesFunctionalApi ? window.__INITIAL_STATE__.showtimesFunctionalApi.queries : {}"
-            )
+            discovered_dates = page.evaluate("""() => {
+                const state = window.__INITIAL_STATE__;
+                if (!state) return [];
+                const results = [];
+                function searchObj(obj) {
+                    if (obj && typeof obj === 'object') {
+                        if (obj.dateCode || obj.showDateCode) {
+                            const d = obj.dateCode || obj.showDateCode;
+                            if (/^[0-9]{8}$/.test(d)) results.push(d);
+                        }
+                        for (let k in obj) searchObj(obj[k]);
+                    }
+                }
+                searchObj(state);
+                return [...new Set(results)].sort();
+            }""")
             
-            for qk, qv in st_func.items():
-                if "fetchPrimaryDynamic" in qk and isinstance(qv, dict) and "data" in qv:
-                    data = qv["data"].get("data", {})
-                    widgets = data.get("showtimeWidgets", [])
-                    for w in widgets:
-                        if w.get("type") == "groupList":
-                            for group in w.get("data", []):
-                                for vc in group.get("data", []):
-                                    add_data = vc.get("additionalData", {})
-                                    vname = add_data.get("venueName", "Unknown Venue")
-                                    vcode = add_data.get("venueCode", "")
-                                    
-                                    raw_showtimes = vc.get("showtimes", [])
-                                    if not raw_showtimes:
-                                        for sec in vc.get("showtimesSections", []):
-                                            raw_showtimes.extend(sec.get("showtimes", []))
-                                    
-                                    showtimes = []
-                                    for st in raw_showtimes:
-                                        st_title = st.get("title", "")
-                                        st_add = st.get("additionalData", {})
-                                        session_id = st_add.get("sessionId", "")
-                                        avail_status = st_add.get("availStatus", "0")
-                                        show_time_code = st_add.get("showTime", st_title)
-                                        screen_attr = st_add.get("attributes", st.get("screenAttr", "")) or "Standard"
-                                        
-                                        categories = []
-                                        for cat in st_add.get("categories", []):
-                                            categories.append({
-                                                "price_desc": cat.get("priceDesc", "Standard"),
-                                                "price": cat.get("curPrice", "0.00"),
-                                                "avail_status": cat.get("availStatus", "0")
-                                            })
-                                            
-                                        showtimes.append({
-                                            "time": show_time_code,
-                                            "session_id": session_id,
-                                            "avail_status": avail_status,
-                                            "screen_attr": screen_attr,
-                                            "categories": categories
-                                        })
-                                        
-                                    key = f"{vname}_{dcode}"
-                                    all_data[key] = {
-                                        "venue_name": vname,
-                                        "venue_code": vcode,
-                                        "date_code": dcode,
-                                        "showtimes": showtimes,
-                                        "target_url": d_url
-                                    }
-        browser.close()
-    except Exception as e:
-        log(f"Multi-date citywide scan error: {e}")
-        
+            if discovered_dates:
+                date_codes = discovered_dates
+            browser.close()
+        except Exception as e:
+            log(f"Dynamic date discovery note: {e}")
+
+    all_data = {}
+    for dcode in date_codes:
+        v_dict = fetch_showtimes_via_api(dcode)
+        target_url = f"{BASE_BUY_URL}/{dcode}"
+        for vname, vinfo in v_dict.items():
+            key = f"{vname}_{dcode}"
+            all_data[key] = {
+                "venue_name": vname,
+                "venue_code": vinfo["venue_code"],
+                "date_code": dcode,
+                "showtimes": vinfo["showtimes"],
+                "target_url": target_url
+            }
+            
     return all_data
 
 
@@ -244,14 +254,14 @@ def format_new_showtime_alert(venue_name: str, showtimes: list, date_str: str, b
 
 
 def run_check_cycle(playwright, previous_state):
-    current_state = extract_all_dates_and_venues(playwright)
+    current_state = fetch_all_dates_and_venues(playwright)
     
     if not current_state:
         log("No venues/dates returned during scan iteration.")
         return previous_state
         
     if not previous_state:
-        log(f"Initial baseline saved for {len(current_state)} venue-date combinations.")
+        log(f"Initial baseline state saved for {len(current_state)} venue-date combinations.")
         save_current_state(current_state)
         return current_state
         

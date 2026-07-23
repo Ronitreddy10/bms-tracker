@@ -15,10 +15,6 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: uses/checkout@v4
-        continue-on-error: true
-
-      - name: Checkout Repo
         uses: actions/checkout@v4
 
       - name: Setup Python

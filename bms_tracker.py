@@ -31,7 +31,7 @@ BASE_BUY_URL = f"https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8794059592:AAFdRlSpuRiZYZItgD71DPeO-y6DgNeEaDY")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "1209851846")
 
-# Default active dates to track if dynamic lookup fails
+# Default active dates to track
 DEFAULT_DATE_CODES = ["20260730", "20260731", "20260801", "20260802", "20260803", "20260804", "20260805"]
 
 # Polling Interval
@@ -162,7 +162,6 @@ def fetch_all_dates_and_venues(playwright=None):
     """
     date_codes = list(DEFAULT_DATE_CODES)
     
-    # Try dynamic date discovery via Playwright if available
     if playwright:
         try:
             browser = playwright.chromium.launch(headless=True)
@@ -260,8 +259,10 @@ def run_check_cycle(playwright, previous_state):
         log("No venues/dates returned during scan iteration.")
         return previous_state
         
-    if not previous_state:
-        log(f"Initial baseline state saved for {len(current_state)} venue-date combinations.")
+    is_initial_creation = not os.path.exists(STATE_FILE) and not previous_state
+    
+    if is_initial_creation:
+        log(f"Initial state baseline file created for {len(current_state)} venue-date combinations.")
         save_current_state(current_state)
         return current_state
         

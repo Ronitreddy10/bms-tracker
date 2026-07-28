@@ -1,12 +1,35 @@
 {
-  "AMB Cinemas: Gachibowli_20260730": {
+  "AMB Cinemas: Gachibowli_20260728": {
     "venue_name": "AMB Cinemas: Gachibowli",
     "venue_code": "AMBH",
-    "date_code": "20260730",
+    "date_code": "20260728",
     "showtimes": [
       {
         "time": "10:15 AM",
         "session_id": "113045",
+        "avail_status": "1",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "1"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "01:20 PM",
+        "session_id": "113046",
         "avail_status": "0",
         "screen_attr": "HDR BY BARCO",
         "categories": [
@@ -19,6 +42,323 @@
             "price_desc": "GOLD",
             "price": "295.00",
             "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "04:25 PM",
+        "session_id": "113047",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "07:30 PM",
+        "session_id": "113048",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:35 PM",
+        "session_id": "113049",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260728"
+  },
+  "Prasads Multiplex: Hyderabad_20260728": {
+    "venue_name": "Prasads Multiplex: Hyderabad",
+    "venue_code": "PRHN",
+    "date_code": "20260728",
+    "showtimes": [
+      {
+        "time": "08:00 AM",
+        "session_id": "253238",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:40 AM",
+        "session_id": "253239",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "11:30 PM",
+        "session_id": "253237",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260728"
+  },
+  "AMB Cinemas: Gachibowli_20260729": {
+    "venue_name": "AMB Cinemas: Gachibowli",
+    "venue_code": "AMBH",
+    "date_code": "20260729",
+    "showtimes": [
+      {
+        "time": "10:15 AM",
+        "session_id": "113045",
+        "avail_status": "1",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "1"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "01:20 PM",
+        "session_id": "113046",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "04:25 PM",
+        "session_id": "113047",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "07:30 PM",
+        "session_id": "113048",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:35 PM",
+        "session_id": "113049",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260729"
+  },
+  "Prasads Multiplex: Hyderabad_20260729": {
+    "venue_name": "Prasads Multiplex: Hyderabad",
+    "venue_code": "PRHN",
+    "date_code": "20260729",
+    "showtimes": [
+      {
+        "time": "08:00 AM",
+        "session_id": "253238",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:40 AM",
+        "session_id": "253239",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "11:30 PM",
+        "session_id": "253237",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260729"
+  },
+  "AMB Cinemas: Gachibowli_20260730": {
+    "venue_name": "AMB Cinemas: Gachibowli",
+    "venue_code": "AMBH",
+    "date_code": "20260730",
+    "showtimes": [
+      {
+        "time": "10:15 AM",
+        "session_id": "113045",
+        "avail_status": "1",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "1"
           },
           {
             "price_desc": "LOUNGERS",
@@ -177,7 +517,7 @@
       {
         "time": "10:15 AM",
         "session_id": "113866",
-        "avail_status": "1",
+        "avail_status": "0",
         "screen_attr": "HDR BY BARCO",
         "categories": [
           {
@@ -188,19 +528,19 @@
           {
             "price_desc": "GOLD",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           },
           {
             "price_desc": "LOUNGERS",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           }
         ]
       },
       {
         "time": "01:20 PM",
         "session_id": "113867",
-        "avail_status": "1",
+        "avail_status": "0",
         "screen_attr": "HDR BY BARCO",
         "categories": [
           {
@@ -211,18 +551,41 @@
           {
             "price_desc": "GOLD",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           },
           {
             "price_desc": "LOUNGERS",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           }
         ]
       },
       {
         "time": "04:25 PM",
         "session_id": "113868",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "07:30 PM",
+        "session_id": "113869",
         "avail_status": "1",
         "screen_attr": "HDR BY BARCO",
         "categories": [
@@ -286,6 +649,32 @@
             "avail_status": "1"
           }
         ]
+      },
+      {
+        "time": "05:25 PM",
+        "session_id": "253908",
+        "avail_status": "2",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "2"
+          }
+        ]
+      },
+      {
+        "time": "11:30 PM",
+        "session_id": "254046",
+        "avail_status": "2",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "2"
+          }
+        ]
       }
     ],
     "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260731"
@@ -298,7 +687,7 @@
       {
         "time": "10:15 AM",
         "session_id": "113871",
-        "avail_status": "1",
+        "avail_status": "0",
         "screen_attr": "HDR BY BARCO",
         "categories": [
           {
@@ -309,7 +698,7 @@
           {
             "price_desc": "GOLD",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           },
           {
             "price_desc": "LOUNGERS",
@@ -321,7 +710,7 @@
       {
         "time": "01:20 PM",
         "session_id": "113872",
-        "avail_status": "1",
+        "avail_status": "0",
         "screen_attr": "HDR BY BARCO",
         "categories": [
           {
@@ -332,19 +721,19 @@
           {
             "price_desc": "GOLD",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           },
           {
             "price_desc": "LOUNGERS",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           }
         ]
       },
       {
         "time": "04:25 PM",
         "session_id": "113873",
-        "avail_status": "1",
+        "avail_status": "0",
         "screen_attr": "HDR BY BARCO",
         "categories": [
           {
@@ -355,19 +744,19 @@
           {
             "price_desc": "GOLD",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           },
           {
             "price_desc": "LOUNGERS",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           }
         ]
       },
       {
         "time": "07:35 PM",
         "session_id": "113874",
-        "avail_status": "1",
+        "avail_status": "0",
         "screen_attr": "HDR BY BARCO",
         "categories": [
           {
@@ -378,7 +767,7 @@
           {
             "price_desc": "GOLD",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           },
           {
             "price_desc": "LOUNGERS",
@@ -406,7 +795,7 @@
           {
             "price_desc": "LOUNGERS",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           }
         ]
       }
@@ -428,6 +817,32 @@
             "price_desc": "EXECUTIVE",
             "price": "295.00",
             "avail_status": "1"
+          }
+        ]
+      },
+      {
+        "time": "06:00 PM",
+        "session_id": "253913",
+        "avail_status": "2",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "2"
+          }
+        ]
+      },
+      {
+        "time": "11:55 PM",
+        "session_id": "254044",
+        "avail_status": "2",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "2"
           }
         ]
       }
@@ -465,7 +880,7 @@
       {
         "time": "01:20 PM",
         "session_id": "113877",
-        "avail_status": "1",
+        "avail_status": "0",
         "screen_attr": "HDR BY BARCO",
         "categories": [
           {
@@ -476,7 +891,7 @@
           {
             "price_desc": "GOLD",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           },
           {
             "price_desc": "LOUNGERS",
@@ -499,7 +914,7 @@
           {
             "price_desc": "GOLD",
             "price": "295.00",
-            "avail_status": "1"
+            "avail_status": "0"
           },
           {
             "price_desc": "LOUNGERS",
@@ -549,6 +964,32 @@
             "price_desc": "EXECUTIVE",
             "price": "295.00",
             "avail_status": "1"
+          }
+        ]
+      },
+      {
+        "time": "06:00 PM",
+        "session_id": "254071",
+        "avail_status": "2",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "2"
+          }
+        ]
+      },
+      {
+        "time": "11:55 PM",
+        "session_id": "254073",
+        "avail_status": "3",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "3"
           }
         ]
       }
@@ -709,7 +1150,7 @@
       {
         "time": "01:20 PM",
         "session_id": "114353",
-        "avail_status": "3",
+        "avail_status": "2",
         "screen_attr": "HDR BY BARCO",
         "categories": [
           {
@@ -720,7 +1161,7 @@
           {
             "price_desc": "GOLD",
             "price": "295.00",
-            "avail_status": "3"
+            "avail_status": "2"
           },
           {
             "price_desc": "LOUNGERS",
@@ -855,7 +1296,7 @@
       {
         "time": "04:25 PM",
         "session_id": "114344",
-        "avail_status": "3",
+        "avail_status": "2",
         "screen_attr": "HDR BY BARCO",
         "categories": [
           {
@@ -866,7 +1307,7 @@
           {
             "price_desc": "GOLD",
             "price": "295.00",
-            "avail_status": "3"
+            "avail_status": "2"
           },
           {
             "price_desc": "LOUNGERS",
@@ -923,5 +1364,1025 @@
       }
     ],
     "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260805"
+  },
+  "AMB Cinemas: Gachibowli_20260806": {
+    "venue_name": "AMB Cinemas: Gachibowli",
+    "venue_code": "AMBH",
+    "date_code": "20260806",
+    "showtimes": [
+      {
+        "time": "10:15 AM",
+        "session_id": "113045",
+        "avail_status": "1",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "1"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "01:20 PM",
+        "session_id": "113046",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "04:25 PM",
+        "session_id": "113047",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "07:30 PM",
+        "session_id": "113048",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:35 PM",
+        "session_id": "113049",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260806"
+  },
+  "Prasads Multiplex: Hyderabad_20260806": {
+    "venue_name": "Prasads Multiplex: Hyderabad",
+    "venue_code": "PRHN",
+    "date_code": "20260806",
+    "showtimes": [
+      {
+        "time": "08:00 AM",
+        "session_id": "253238",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:40 AM",
+        "session_id": "253239",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "11:30 PM",
+        "session_id": "253237",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260806"
+  },
+  "AMB Cinemas: Gachibowli_20260807": {
+    "venue_name": "AMB Cinemas: Gachibowli",
+    "venue_code": "AMBH",
+    "date_code": "20260807",
+    "showtimes": [
+      {
+        "time": "10:15 AM",
+        "session_id": "113045",
+        "avail_status": "1",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "1"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "01:20 PM",
+        "session_id": "113046",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "04:25 PM",
+        "session_id": "113047",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "07:30 PM",
+        "session_id": "113048",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:35 PM",
+        "session_id": "113049",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260807"
+  },
+  "Prasads Multiplex: Hyderabad_20260807": {
+    "venue_name": "Prasads Multiplex: Hyderabad",
+    "venue_code": "PRHN",
+    "date_code": "20260807",
+    "showtimes": [
+      {
+        "time": "08:00 AM",
+        "session_id": "253238",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:40 AM",
+        "session_id": "253239",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "11:30 PM",
+        "session_id": "253237",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260807"
+  },
+  "AMB Cinemas: Gachibowli_20260808": {
+    "venue_name": "AMB Cinemas: Gachibowli",
+    "venue_code": "AMBH",
+    "date_code": "20260808",
+    "showtimes": [
+      {
+        "time": "10:15 AM",
+        "session_id": "113045",
+        "avail_status": "1",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "1"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "01:20 PM",
+        "session_id": "113046",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "04:25 PM",
+        "session_id": "113047",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "07:30 PM",
+        "session_id": "113048",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:35 PM",
+        "session_id": "113049",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260808"
+  },
+  "Prasads Multiplex: Hyderabad_20260808": {
+    "venue_name": "Prasads Multiplex: Hyderabad",
+    "venue_code": "PRHN",
+    "date_code": "20260808",
+    "showtimes": [
+      {
+        "time": "08:00 AM",
+        "session_id": "253238",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:40 AM",
+        "session_id": "253239",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "11:30 PM",
+        "session_id": "253237",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260808"
+  },
+  "AMB Cinemas: Gachibowli_20260809": {
+    "venue_name": "AMB Cinemas: Gachibowli",
+    "venue_code": "AMBH",
+    "date_code": "20260809",
+    "showtimes": [
+      {
+        "time": "10:15 AM",
+        "session_id": "113045",
+        "avail_status": "1",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "1"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "01:20 PM",
+        "session_id": "113046",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "04:25 PM",
+        "session_id": "113047",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "07:30 PM",
+        "session_id": "113048",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:35 PM",
+        "session_id": "113049",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260809"
+  },
+  "Prasads Multiplex: Hyderabad_20260809": {
+    "venue_name": "Prasads Multiplex: Hyderabad",
+    "venue_code": "PRHN",
+    "date_code": "20260809",
+    "showtimes": [
+      {
+        "time": "08:00 AM",
+        "session_id": "253238",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:40 AM",
+        "session_id": "253239",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "11:30 PM",
+        "session_id": "253237",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260809"
+  },
+  "AMB Cinemas: Gachibowli_20260810": {
+    "venue_name": "AMB Cinemas: Gachibowli",
+    "venue_code": "AMBH",
+    "date_code": "20260810",
+    "showtimes": [
+      {
+        "time": "10:15 AM",
+        "session_id": "113045",
+        "avail_status": "1",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "1"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "01:20 PM",
+        "session_id": "113046",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "04:25 PM",
+        "session_id": "113047",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "07:30 PM",
+        "session_id": "113048",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:35 PM",
+        "session_id": "113049",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260810"
+  },
+  "Prasads Multiplex: Hyderabad_20260810": {
+    "venue_name": "Prasads Multiplex: Hyderabad",
+    "venue_code": "PRHN",
+    "date_code": "20260810",
+    "showtimes": [
+      {
+        "time": "08:00 AM",
+        "session_id": "253238",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:40 AM",
+        "session_id": "253239",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "11:30 PM",
+        "session_id": "253237",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260810"
+  },
+  "AMB Cinemas: Gachibowli_20260811": {
+    "venue_name": "AMB Cinemas: Gachibowli",
+    "venue_code": "AMBH",
+    "date_code": "20260811",
+    "showtimes": [
+      {
+        "time": "10:15 AM",
+        "session_id": "113045",
+        "avail_status": "1",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "1"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "01:20 PM",
+        "session_id": "113046",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "04:25 PM",
+        "session_id": "113047",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "07:30 PM",
+        "session_id": "113048",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:35 PM",
+        "session_id": "113049",
+        "avail_status": "0",
+        "screen_attr": "HDR BY BARCO",
+        "categories": [
+          {
+            "price_desc": "PLATINUM",
+            "price": "350.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "GOLD",
+            "price": "295.00",
+            "avail_status": "0"
+          },
+          {
+            "price_desc": "LOUNGERS",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260811"
+  },
+  "Prasads Multiplex: Hyderabad_20260811": {
+    "venue_name": "Prasads Multiplex: Hyderabad",
+    "venue_code": "PRHN",
+    "date_code": "20260811",
+    "showtimes": [
+      {
+        "time": "08:00 AM",
+        "session_id": "253238",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "10:40 AM",
+        "session_id": "253239",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      },
+      {
+        "time": "11:30 PM",
+        "session_id": "253237",
+        "avail_status": "0",
+        "screen_attr": "PCX HDR by BARCO",
+        "categories": [
+          {
+            "price_desc": "EXECUTIVE",
+            "price": "295.00",
+            "avail_status": "0"
+          }
+        ]
+      }
+    ],
+    "target_url": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00505091/20260811"
   }
 }

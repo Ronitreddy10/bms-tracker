@@ -1,24 +1,27 @@
 #!/usr/bin/env python3
 """
-BookMyShow Multi-Date & City-Wide Ticket Tracker v3
+BookMyShow Multi-Date & City-Wide Ticket Tracker v4
 ----------------------------------------------------
 Monitors ALL DATES and ALL THEATRES IN HYDERABAD for:
-  - New show releases
-  - New dates opening
-  - Seat/row unblocks (status changes)
+  - Tickets OPENING (status 0 → 1/2/3 = greyed out → bookable)
+  - New bookable showtimes appearing
+  - New bookable dates opening
+  - New ticket categories becoming bookable
+
+IMPORTANT: BMS availStatus values:
+  0 = NOT bookable (greyed out on website, tickets not open yet)
+  1 = Bookable (tickets open, available)
+  2 = Bookable (fast filling)
+  3 = Bookable (almost sold out)
+
+We ONLY notify when something becomes BOOKABLE (status goes from 0 to 1/2/3).
+We do NOT spam about shows that are just listed but greyed out.
 
 DESIGN FOR GITHUB ACTIONS:
   - Runs with --once flag (single check per cron invocation)
   - State persisted via bms_state.json committed to git
   - No Playwright dependency (pure API, faster startup)
   - Sends Telegram BEFORE saving state (crash-safe)
-
-USAGE:
-    Single Check (GitHub Actions - recommended):
-        python3 bms_tracker.py --once
-
-    Continuous Daemon (local only):
-        python3 bms_tracker.py
 """
 
 import time
@@ -58,6 +61,22 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(SCRIPT_DIR, "bms_state.json")
 LOG_FILE = os.path.join(SCRIPT_DIR, "tracker.log")
 
+# BMS availability status mapping
+# 0 = NOT bookable (greyed out on website)
+# 1 = Bookable (available)
+# 2 = Bookable (fast filling)
+# 3 = Bookable (almost sold out)
+STATUS_LABELS = {
+    "0": "🔒 Not Open Yet",
+    "1": "🟢 Available",
+    "2": "🟡 Fast Filling",
+    "3": "🔴 Almost Full",
+}
+
+def is_bookable(status: str) -> bool:
+    """Returns True if the status means tickets are actually open for booking."""
+    return str(status) in ("1", "2", "3")
+
 # HTTP Session with retries
 session = requests.Session()
 adapter = requests.adapters.HTTPAdapter(max_retries=3)
@@ -72,7 +91,7 @@ def log(msg: str):
     """Log to both stdout and file."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"[{timestamp}] {msg}"
-    print(line, flush=True)  # flush=True ensures GitHub Actions shows logs in real-time
+    print(line, flush=True)
     try:
         with open(LOG_FILE, "a", encoding="utf-8") as f:
             f.write(line + "\n")
@@ -91,7 +110,7 @@ def send_telegram(message: str) -> bool:
             "disable_web_page_preview": True,
         }, timeout=15)
         if resp.status_code == 200:
-            log(f"✅ Telegram notification SENT successfully (msg_id: {resp.json().get('result', {}).get('message_id', '?')})")
+            log(f"✅ Telegram SENT (msg_id: {resp.json().get('result', {}).get('message_id', '?')})")
             return True
         else:
             log(f"❌ Telegram API Error ({resp.status_code}): {resp.text[:200]}")
@@ -107,7 +126,7 @@ def format_date_display(date_code: str) -> str:
         dt_obj = datetime.strptime(date_code, "%Y%m%d")
         day = dt_obj.day
         suffix = "th" if 11 <= day <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
-        return f"{day}{suffix} {dt_obj.strftime('%B %Y')}"
+        return f"{day}{suffix} {dt_obj.strftime('%B')}"
     except Exception:
         return date_code
 
@@ -147,7 +166,6 @@ def fetch_showtimes_for_date(date_code: str) -> dict:
                     vname = add_data.get("venueName", "Unknown Venue")
                     vcode = add_data.get("venueCode", "")
 
-                    # Collect showtimes from both flat list and sections
                     raw_showtimes = list(vc.get("showtimes", []))
                     for sec in vc.get("showtimesSections", []):
                         raw_showtimes.extend(sec.get("showtimes", []))
@@ -185,7 +203,7 @@ def fetch_showtimes_for_date(date_code: str) -> dict:
         return venues
 
     except requests.exceptions.Timeout:
-        log(f"  ⏱️ Timeout fetching date {date_code} (20s)")
+        log(f"  ⏱️ Timeout fetching date {date_code}")
         return {}
     except Exception as e:
         log(f"  ⚠️ Error fetching date {date_code}: {e}")
@@ -193,16 +211,14 @@ def fetch_showtimes_for_date(date_code: str) -> dict:
 
 
 def fetch_all_dates_and_venues() -> dict:
-    """
-    Fetch showtimes for ALL dates across ALL venues.
-    Returns dict keyed by 'VenueName_DateCode'.
-    """
+    """Fetch showtimes for ALL dates across ALL venues."""
     date_codes = generate_date_codes()
     log(f"Scanning {len(date_codes)} dates: {date_codes[0]} to {date_codes[-1]}")
 
     all_data = {}
     total_venues = 0
     total_shows = 0
+    bookable_shows = 0
 
     for dcode in date_codes:
         venues = fetch_showtimes_for_date(dcode)
@@ -210,18 +226,21 @@ def fetch_all_dates_and_venues() -> dict:
 
         for vname, vinfo in venues.items():
             key = f"{vname}_{dcode}"
-            num_shows = len(vinfo["showtimes"])
+            shows = vinfo["showtimes"]
+            num_bookable = sum(1 for s in shows if is_bookable(s["avail_status"]))
+
             all_data[key] = {
                 "venue_name": vname,
                 "venue_code": vinfo["venue_code"],
                 "date_code": dcode,
-                "showtimes": vinfo["showtimes"],
+                "showtimes": shows,
                 "target_url": booking_url,
             }
             total_venues += 1
-            total_shows += num_shows
+            total_shows += len(shows)
+            bookable_shows += num_bookable
 
-    log(f"Scan complete: {total_venues} venue-date combos, {total_shows} total showtimes across {len(date_codes)} dates")
+    log(f"Scan complete: {total_venues} venue-dates, {total_shows} total shows, {bookable_shows} currently bookable")
     return all_data
 
 
@@ -231,13 +250,13 @@ def load_previous_state() -> dict:
         try:
             with open(STATE_FILE, "r", encoding="utf-8") as f:
                 state = json.load(f)
-                log(f"Loaded previous state: {len(state)} venue-date combos from {STATE_FILE}")
+                log(f"Loaded previous state: {len(state)} venue-date combos")
                 return state
         except Exception as e:
             log(f"⚠️ Error loading state file: {e}")
             return {}
     else:
-        log(f"No state file found at {STATE_FILE} — this is a FIRST RUN")
+        log(f"No state file found — FIRST RUN")
         return {}
 
 
@@ -261,95 +280,134 @@ def signal_handler(signum, frame):
     sys.exit(0)
 
 
-def format_new_showtime_alert(venue_name: str, showtimes: list, date_str: str, booking_url: str) -> str:
+# ============ NOTIFICATION FORMATTERS ============
+
+def format_tickets_opened_alert(venue_name: str, shows: list, date_str: str, booking_url: str) -> str:
+    """Alert for when tickets transition from not-bookable to bookable (the main event!)."""
     show_lines = []
-    for s in showtimes:
+    for s in shows:
         attr = s.get("screen_attr", "Standard")
-        status_map = {"0": "🔒 Coming Soon", "1": "🟢 Available", "2": "🟡 Filling Fast", "3": "🔴 Almost Full"}
-        status = status_map.get(s.get("avail_status", "0"), "❓ Unknown")
-        show_lines.append(f"  ⏰ <b>{s['time']}</b> | {attr} | {status}")
+        status = STATUS_LABELS.get(s.get("avail_status", "0"), "❓")
+        # Show price info if available
+        price_info = ""
+        cats = s.get("categories", [])
+        bookable_cats = [c for c in cats if is_bookable(c.get("avail_status", "0"))]
+        if bookable_cats:
+            prices = [f"{c['price_desc']} ₹{c['price']}" for c in bookable_cats]
+            price_info = f" — {', '.join(prices)}"
+        show_lines.append(f"  ⏰ <b>{s['time']}</b> | {attr} | {status}{price_info}")
 
     shows_text = "\n".join(show_lines)
     return (
-        f"🎬 <b>NEW SHOWS DETECTED!</b> 🎬\n\n"
+        f"🚨🎟️ <b>TICKETS ARE NOW OPEN!</b> 🎟️🚨\n\n"
         f"🎥 <b>{MOVIE_NAME}</b>\n"
         f"📍 <b>{venue_name}</b>\n"
         f"📅 <b>{date_str}</b>\n\n"
         f"{shows_text}\n\n"
-        f"🔗 <a href=\"{booking_url}\">Book Tickets Now on BookMyShow</a>"
+        f"⚡ Book NOW before they sell out!\n"
+        f"🔗 <a href=\"{booking_url}\">Book Tickets on BookMyShow</a>"
     )
 
 
-def format_status_change_alert(venue_name: str, show_time: str, screen_attr: str,
-                                date_str: str, old_status: str, new_status: str,
-                                booking_url: str) -> str:
-    status_map = {"0": "🔒 Coming Soon", "1": "🟢 Available", "2": "🟡 Filling Fast", "3": "🔴 Almost Full"}
-    old_label = status_map.get(old_status, old_status)
-    new_label = status_map.get(new_status, new_status)
+def format_new_bookable_showtime_alert(venue_name: str, shows: list, date_str: str, booking_url: str) -> str:
+    """Alert for new showtimes that are already bookable."""
+    show_lines = []
+    for s in shows:
+        attr = s.get("screen_attr", "Standard")
+        status = STATUS_LABELS.get(s.get("avail_status", "0"), "❓")
+        show_lines.append(f"  ⏰ <b>{s['time']}</b> | {attr} | {status}")
 
+    shows_text = "\n".join(show_lines)
     return (
-        f"🔥 <b>TICKETS STATUS CHANGED!</b> 🔥\n\n"
+        f"🎬 <b>NEW BOOKABLE SHOWS!</b> 🎬\n\n"
         f"🎥 <b>{MOVIE_NAME}</b>\n"
         f"📍 <b>{venue_name}</b>\n"
-        f"📅 <b>{date_str}</b>\n"
-        f"⏰ <b>{show_time}</b> | {screen_attr}\n\n"
-        f"📊 {old_label} ➡️ {new_label}\n\n"
-        f"🔗 <a href=\"{booking_url}\">Book Tickets Now on BookMyShow</a>"
+        f"📅 <b>{date_str}</b>\n\n"
+        f"{shows_text}\n\n"
+        f"🔗 <a href=\"{booking_url}\">Book Tickets on BookMyShow</a>"
     )
 
 
-def format_category_unblock_alert(venue_name: str, show_time: str, screen_attr: str,
-                                   category_name: str, date_str: str, booking_url: str) -> str:
+def format_new_date_listed_alert(venue_name: str, date_str: str, num_shows: int, has_bookable: bool, booking_url: str) -> str:
+    """Alert for a completely new date appearing (may or may not be bookable yet)."""
+    if has_bookable:
+        return (
+            f"📅🎟️ <b>NEW DATE WITH BOOKABLE SHOWS!</b>\n\n"
+            f"🎥 <b>{MOVIE_NAME}</b>\n"
+            f"📍 <b>{venue_name}</b>\n"
+            f"📅 <b>{date_str}</b> — {num_shows} shows\n\n"
+            f"⚡ Tickets are OPEN! Book now!\n"
+            f"🔗 <a href=\"{booking_url}\">Book Tickets on BookMyShow</a>"
+        )
+    else:
+        return (
+            f"📅 <b>New Date Listed</b>\n\n"
+            f"🎥 <b>{MOVIE_NAME}</b>\n"
+            f"📍 <b>{venue_name}</b>\n"
+            f"📅 <b>{date_str}</b> — {num_shows} shows listed\n"
+            f"🔒 Tickets not open yet — you'll be notified when they open!\n\n"
+            f"🔗 <a href=\"{booking_url}\">View on BookMyShow</a>"
+        )
+
+
+def format_category_opened_alert(venue_name: str, show_time: str, screen_attr: str,
+                                  category_name: str, price: str, date_str: str, booking_url: str) -> str:
+    """Alert for a ticket category becoming bookable."""
     return (
-        f"🎟️ <b>NEW TICKET CATEGORY AVAILABLE!</b> 🎟️\n\n"
+        f"🎟️ <b>NEW TICKET CATEGORY OPEN!</b>\n\n"
         f"🎥 <b>{MOVIE_NAME}</b>\n"
         f"📍 <b>{venue_name}</b>\n"
-        f"📅 <b>{date_str}</b>\n"
-        f"⏰ <b>{show_time}</b> | {screen_attr}\n"
-        f"💺 <b>{category_name}</b> — Now Bookable!\n\n"
-        f"🔗 <a href=\"{booking_url}\">Book Tickets Now on BookMyShow</a>"
+        f"📅 <b>{date_str}</b> | ⏰ <b>{show_time}</b>\n"
+        f"🎥 {screen_attr}\n"
+        f"💺 <b>{category_name}</b> — ₹{price} — Now Bookable!\n\n"
+        f"🔗 <a href=\"{booking_url}\">Book Tickets on BookMyShow</a>"
     )
 
+
+# ============ MAIN DETECTION LOGIC ============
 
 def run_check_cycle(previous_state: dict) -> dict:
     """
     Main detection logic. Compares current API data against previous state.
-    Sends Telegram for every change BEFORE saving state (crash-safe).
+    Only notifies for MEANINGFUL changes (tickets becoming bookable).
     """
     current_state = fetch_all_dates_and_venues()
 
     if not current_state:
-        log("⚠️ API returned 0 venues/dates. Possible API issue or network problem. Keeping previous state.")
+        log("⚠️ API returned 0 venues/dates. Keeping previous state.")
         return previous_state
 
-    # FIRST RUN: No previous state at all — establish baseline
+    # FIRST RUN: Establish baseline, send summary
     if not previous_state:
         log(f"🆕 FIRST RUN: Establishing baseline with {len(current_state)} venue-date combos")
-        # Send a summary notification so user knows tracking started
+
         venue_names = set()
         date_codes = set()
         total_shows = 0
+        bookable = 0
         for key, vdata in current_state.items():
             venue_names.add(vdata["venue_name"])
             date_codes.add(vdata["date_code"])
-            total_shows += len(vdata.get("showtimes", []))
+            for s in vdata.get("showtimes", []):
+                total_shows += 1
+                if is_bookable(s["avail_status"]):
+                    bookable += 1
 
         dates_display = ", ".join(sorted(format_date_display(d) for d in date_codes))
-        venues_display = ", ".join(sorted(venue_names))
 
         startup_msg = (
-            f"✅ <b>BMS Tracker Started Successfully!</b>\n\n"
-            f"🎥 Monitoring: <b>{MOVIE_NAME}</b>\n"
-            f"📍 Venues: {venues_display}\n"
+            f"✅ <b>BMS Tracker v4 Started!</b>\n\n"
+            f"🎥 <b>{MOVIE_NAME}</b>\n"
+            f"📍 {len(venue_names)} venue(s): {', '.join(sorted(venue_names))}\n"
             f"📅 Dates: {dates_display}\n"
-            f"🎟️ Total showtimes tracked: <b>{total_shows}</b>\n\n"
-            f"You will be notified instantly when new shows open or ticket status changes!"
+            f"🎟️ {total_shows} shows tracked ({bookable} currently bookable)\n\n"
+            f"You'll be notified ONLY when tickets actually OPEN for booking!"
         )
         send_telegram(startup_msg)
         save_current_state(current_state)
         return current_state
 
-    # COMPARE: Detect changes
+    # ============ COMPARE & DETECT ============
     notifications_sent = 0
 
     for key, vdata in current_state.items():
@@ -359,97 +417,108 @@ def run_check_cycle(previous_state: dict) -> dict:
         booking_url = vdata.get("target_url", BASE_BUY_URL)
         curr_shows = vdata.get("showtimes", [])
 
-        # Case 1: Entirely new venue-date combo (new theatre or new date opened)
+        # ---- Case 1: Entirely new venue-date combo ----
         if key not in previous_state:
-            log(f"🆕 NEW VENUE/DATE: {vname} on {date_display} ({len(curr_shows)} shows)")
-            msg = format_new_showtime_alert(vname, curr_shows, date_display, booking_url)
-            if send_telegram(msg):
-                notifications_sent += 1
+            bookable_shows = [s for s in curr_shows if is_bookable(s["avail_status"])]
+            has_bookable = len(bookable_shows) > 0
+
+            if has_bookable:
+                # New date with tickets already open — HIGH PRIORITY
+                log(f"🆕🎟️ NEW DATE WITH BOOKABLE SHOWS: {vname} on {date_display} ({len(bookable_shows)} bookable)")
+                msg = format_new_date_listed_alert(vname, date_display, len(curr_shows), True, booking_url)
+                if send_telegram(msg):
+                    notifications_sent += 1
+            else:
+                # New date listed but nothing bookable yet — LOW PRIORITY, still notify but calmer
+                log(f"📅 New date listed (not bookable yet): {vname} on {date_display} ({len(curr_shows)} shows)")
+                msg = format_new_date_listed_alert(vname, date_display, len(curr_shows), False, booking_url)
+                if send_telegram(msg):
+                    notifications_sent += 1
             continue
 
-        # Case 2: Existing venue-date — check for new showtimes and status changes
+        # ---- Case 2: Existing venue-date — detect changes ----
         prev_shows_map = {s["session_id"]: s for s in previous_state[key].get("showtimes", []) if s.get("session_id")}
 
-        # Detect new showtimes (session_id not in previous)
+        # Detect new showtimes that didn't exist before
         new_shows = [s for s in curr_shows if s.get("session_id") and s["session_id"] not in prev_shows_map]
         if new_shows:
-            log(f"🆕 NEW SHOWTIMES at {vname} on {date_display}: {[s['time'] for s in new_shows]}")
-            msg = format_new_showtime_alert(vname, new_shows, date_display, booking_url)
-            if send_telegram(msg):
-                notifications_sent += 1
+            bookable_new = [s for s in new_shows if is_bookable(s["avail_status"])]
+            if bookable_new:
+                log(f"🆕🎟️ NEW BOOKABLE SHOWTIMES at {vname} on {date_display}: {[s['time'] for s in bookable_new]}")
+                msg = format_new_bookable_showtime_alert(vname, bookable_new, date_display, booking_url)
+                if send_telegram(msg):
+                    notifications_sent += 1
+            else:
+                log(f"📝 New shows listed (not bookable yet) at {vname} on {date_display}: {[s['time'] for s in new_shows]}")
+                # Don't spam about non-bookable new shows
 
-        # Detect status changes for existing showtimes
+        # Detect tickets OPENING (status 0 → 1/2/3) — THE MOST IMPORTANT EVENT
+        newly_opened = []
         for curr_s in curr_shows:
             sid = curr_s.get("session_id", "")
             if not sid or sid not in prev_shows_map:
                 continue
 
             prev_s = prev_shows_map[sid]
-
-            # Overall availability status change (e.g., 0->1 means tickets just opened)
             old_avail = str(prev_s.get("avail_status", "0"))
             new_avail = str(curr_s.get("avail_status", "0"))
 
-            if old_avail != new_avail:
-                # Only notify for meaningful changes:
-                # 0->1,2,3 = tickets just opened (most important!)
-                # Any change is worth reporting
-                log(f"📊 STATUS CHANGE at {vname} ({date_display}, {curr_s['time']}): {old_avail} -> {new_avail}")
-                msg = format_status_change_alert(
-                    vname, curr_s["time"], curr_s.get("screen_attr", "Standard"),
-                    date_display, old_avail, new_avail, booking_url
-                )
-                if send_telegram(msg):
-                    notifications_sent += 1
+            # Tickets just opened! (was greyed out, now bookable)
+            if not is_bookable(old_avail) and is_bookable(new_avail):
+                newly_opened.append(curr_s)
 
-            # Category-level unblock detection
-            prev_cats = {c["price_desc"]: str(c.get("avail_status", "0")) for c in prev_s.get("categories", [])}
+            # Category-level: a specific ticket category just became bookable
+            prev_cats = {c["price_desc"]: c for c in prev_s.get("categories", [])}
             for curr_c in curr_s.get("categories", []):
                 cname = curr_c["price_desc"]
                 curr_cat_status = str(curr_c.get("avail_status", "0"))
-                prev_cat_status = prev_cats.get(cname, None)
+                prev_cat = prev_cats.get(cname)
 
-                if prev_cat_status is not None and prev_cat_status == "0" and curr_cat_status != "0":
-                    log(f"🎟️ CATEGORY UNBLOCKED: {cname} at {vname} ({date_display}, {curr_s['time']})")
-                    msg = format_category_unblock_alert(
-                        vname, curr_s["time"], curr_s.get("screen_attr", "Standard"),
-                        cname, date_display, booking_url
-                    )
-                    if send_telegram(msg):
-                        notifications_sent += 1
+                if prev_cat and not is_bookable(str(prev_cat.get("avail_status", "0"))) and is_bookable(curr_cat_status):
+                    # Only notify category if the overall show was already bookable
+                    # (to avoid double-notifying when the whole show just opened)
+                    if is_bookable(old_avail):
+                        log(f"🎟️ CATEGORY OPENED: {cname} at {vname} ({date_display}, {curr_s['time']})")
+                        msg = format_category_opened_alert(
+                            vname, curr_s["time"], curr_s.get("screen_attr", "Standard"),
+                            cname, curr_c.get("price", "?"), date_display, booking_url
+                        )
+                        if send_telegram(msg):
+                            notifications_sent += 1
+
+        if newly_opened:
+            log(f"🚨 TICKETS OPENED at {vname} on {date_display}: {[s['time'] for s in newly_opened]}")
+            msg = format_tickets_opened_alert(vname, newly_opened, date_display, booking_url)
+            if send_telegram(msg):
+                notifications_sent += 1
 
     if notifications_sent > 0:
-        log(f"📨 Total notifications sent this cycle: {notifications_sent}")
+        log(f"📨 Sent {notifications_sent} notifications this cycle")
     else:
-        log("No changes detected this cycle.")
+        log("✓ No bookable changes detected.")
 
-    # Save state AFTER all notifications sent (crash-safe: if we crash before save,
-    # next run will re-detect and re-notify — better to double-notify than miss)
+    # Save state AFTER all notifications (crash-safe)
     save_current_state(current_state)
     return current_state
 
 
 def main():
-    # Set up signal handlers for graceful shutdown
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
     single_run = "--once" in sys.argv
 
     log("=" * 60)
-    log(f"BMS Ticket Tracker v3 — {'SINGLE CHECK' if single_run else 'CONTINUOUS DAEMON'}")
+    log(f"BMS Ticket Tracker v4 — {'SINGLE CHECK' if single_run else 'CONTINUOUS DAEMON'}")
     log(f"Movie: {MOVIE_NAME} | Event: {EVENT_CODE}")
-    log(f"Telegram Bot: {TELEGRAM_BOT_TOKEN[:10]}... | Chat: {TELEGRAM_CHAT_ID}")
-    log(f"State File: {STATE_FILE}")
-    log(f"State File Exists: {os.path.exists(STATE_FILE)}")
+    log(f"State File: {STATE_FILE} (exists: {os.path.exists(STATE_FILE)})")
     log("=" * 60)
 
     previous_state = load_previous_state()
 
     if single_run:
-        # GitHub Actions mode: single check, then exit
         run_check_cycle(previous_state)
-        log("Single check complete. Exiting.")
+        log("Single check complete.")
         return
 
     # Continuous daemon mode (local only)
@@ -458,18 +527,16 @@ def main():
         try:
             previous_state = run_check_cycle(previous_state)
             consecutive_errors = 0
-            interval = random.uniform(CHECK_INTERVAL_MIN, CHECK_INTERVAL_MAX)
-            time.sleep(interval)
+            time.sleep(random.uniform(CHECK_INTERVAL_MIN, CHECK_INTERVAL_MAX))
         except KeyboardInterrupt:
-            log("Tracker stopped by user.")
+            log("Stopped by user.")
             if previous_state:
                 save_current_state(previous_state)
             break
         except Exception as e:
             consecutive_errors += 1
-            log(f"⚠️ Error in cycle ({consecutive_errors}): {e}")
-            backoff = min(CHECK_INTERVAL_MAX * (1.5 ** consecutive_errors), MAX_BACKOFF)
-            time.sleep(backoff)
+            log(f"⚠️ Error ({consecutive_errors}): {e}")
+            time.sleep(min(CHECK_INTERVAL_MAX * (1.5 ** consecutive_errors), MAX_BACKOFF))
 
 
 if __name__ == "__main__":

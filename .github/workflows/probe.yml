@@ -1,0 +1,26 @@
+name: probe-bms
+on:
+  push:
+    branches: [claude/probe-actions]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -q -r requirements.txt
+      - name: probe
+        run: |
+          curl -s https://ipinfo.io/json | grep -E '"(country|org)"' || true
+          python - <<'PY'
+          import sys; sys.path.insert(0,'.')
+          from bms_tracker.bms import Client
+          c = Client('hyderabad', 1.5)
+          try:
+              print('search', c.search_movies('avengers doomsday'))
+              s = c.showtimes('ET00439706'); print('shows', len(s.shows), 'dates', s.dates)
+          except Exception as e:
+              print('FAIL', type(e).__name__, e)
+          PY

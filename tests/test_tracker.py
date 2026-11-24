@@ -142,7 +142,9 @@ def test_row_unlock(tmp_path, monkeypatch):
 
 
 def test_parse_layout_and_rows_filter():
-    text = "RECLINER:1:RC:1||A:1:1101+1:1102+2:0:1203+3|B:2:1104+4:1205+5|C:3:1206+6"
+    # live format: rowNo:letter:areaMarker:seats...; "A0+0" = blank; spacer rows have no letter
+    text = ("RECLINER:A:RC:1||1:A:A000:A0+0:A1001+1:A1002+2:A0+0:A2003+3|0::A000:A0+0"
+            "|2:B:A000:A1004+4:A2005+5|3:C:A000:A2006+6")
     rows = seatmod.parse_layout(text)
     assert [(r.label, r.free, r.total, r.area) for r in rows] == [
         ("A", 2, 3, "RECLINER"), ("B", 1, 2, "RECLINER"), ("C", 0, 1, "RECLINER")]
@@ -162,3 +164,15 @@ def test_decrypt_roundtrip():
 def test_no_shows_yet_payload():
     snap = parse_showtimes({"metadata": {"error": "There are no shows"}, "data": {}}, ET)
     assert snap.shows == [] and snap.dates == {}
+
+
+def test_screen_text_not_duplicated():
+    st = show("1", "1900", "LASER 4K ATMOS", [("GOLD", "200", "3")])
+    st["additionalData"]["attributes"] = "LASER 4K ATMOS"
+    snap = parse_showtimes(payload([venue("ALUC", "ALLU Cinemas: Kokapet", [st])]), ET)
+    assert snap.shows[0].screen == "LASER 4K ATMOS"
+
+
+def test_explore_link_form():
+    html = '<a href="/hyderabad/movies/avengers-doomsday/ET00439706">'
+    assert match_movie_links(html, "hyderabad", ["doomsday"]) == {"ET00439706": "avengers-doomsday"}

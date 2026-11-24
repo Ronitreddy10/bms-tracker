@@ -63,8 +63,10 @@ def fetch_rows(client: Client, venue_code: str, session_id: str) -> list[Row]:
 
 def parse_layout(text: str) -> list[Row]:
     """Format: "<areas>||<rows>".
-    areas: "desc:areaId:areaCode:...|..."   rows: "label:rowNo:SEAT:SEAT...|..."
-    SEAT:  "<areaId><status><seatNo>+<cinemaSeatNo>[+rank]"
+    areas: "desc:areaId:areaCode:...|..."
+    rows:  "rowNo:rowLetter:<areaMarker>:SEAT:SEAT...|..."   e.g. "1:A:A000:A0+0:A1011+18"
+    SEAT:  "<areaId><status><seatNo>+<n>"; status 0 = blank space, 1/4 = free, 2 = sold.
+    Spacer rows have an empty letter ("0::A000:A0+0").
     """
     parts = text.split("||")
     if len(parts) < 2:
@@ -77,18 +79,20 @@ def parse_layout(text: str) -> list[Row]:
     rows = []
     for r in filter(None, parts[1].split("|")):
         f = r.split(":")
-        if len(f) < 2 or not f[0]:
-            continue
+        if len(f) < 4 or not f[1]:
+            continue  # spacer row
         free = total = 0
         areas = {}
-        for tok in f[2:]:
+        for tok in f[3:]:
             head = tok.split("+")[0]
-            if len(head) < 2:
-                continue  # gangway
+            if len(head) < 2 or head[1] == "0":
+                continue  # blank space / gangway
             total += 1
             areas[head[0]] = areas.get(head[0], 0) + 1
             if head[1] in FREE:
                 free += 1
-        area_id = max(areas, key=areas.get) if areas else ""
-        rows.append(Row(label=f[0], area=area_desc.get(area_id, area_id), free=free, total=total))
+        if not total:
+            continue
+        area_id = max(areas, key=areas.get)
+        rows.append(Row(label=f[1], area=area_desc.get(area_id, area_id), free=free, total=total))
     return rows

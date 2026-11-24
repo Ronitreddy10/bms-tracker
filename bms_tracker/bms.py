@@ -233,10 +233,12 @@ def _shows(body, event_code):
                     date_code = str(sa.get("showDateCode") or sa.get("dateCode") or "")
                     if not date_code and re.match(r"^\d{8}", sa.get("cutOffDateTime", "")):
                         date_code = sa["cutOffDateTime"][:8]
-                    screen = " ".join(x for x in (
-                        st.get("screenAttr", ""), sa.get("attributes", ""),
-                        sa.get("screenName", ""), st.get("subtitle", "") if isinstance(st.get("subtitle"), str) else "",
-                    ) if x).strip()
+                    parts = []
+                    for x in (st.get("screenAttr", ""), sa.get("attributes", ""), sa.get("screenName", "")):
+                        x = (x or "").strip() if isinstance(x, str) else ""
+                        if x and x not in parts:
+                            parts.append(x)  # screenAttr and attributes usually repeat each other
+                    screen = " ".join(parts)
                     show = Show(
                         event_code=event_code,
                         venue_code=va.get("venueCode", ""),

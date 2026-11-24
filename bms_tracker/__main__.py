@@ -60,7 +60,8 @@ def main() -> None:
 
 def discover(client: Client, city: str, query: str) -> None:
     """Print everything you need to fill in config.yaml."""
-    codes = [query] if query.startswith("ET") else list(client.search_movies(query))
+    names = {} if query.startswith("ET") else client.search_movies(query)
+    codes = [query] if query.startswith("ET") else list(names)
     if not codes:
         print(f"No listing for '{query}' in {city} yet. Put `movie: {query}` in config and the tracker "
               "will alert you the moment it appears.")
@@ -74,7 +75,8 @@ def discover(client: Client, city: str, query: str) -> None:
         snap = client.showtimes(code)
         todo += sorted(snap.variant_codes)
         dates = ", ".join(f"{pretty_date(d)}{'' if s == 'OPEN' else ' (closed)'}" for d, s in sorted(snap.dates.items()))
-        print(f"\n=== {snap.movie}  [{code}]\n    dates: {dates or 'not open yet'}")
+        title = snap.movie if snap.movie != code else names.get(code, code).replace("-", " ").title()
+        print(f"\n=== {title}  [{code}]\n    dates: {dates or 'not open yet'}")
         by_venue = defaultdict(set)
         for s in snap.shows:
             by_venue[(s.venue_code, s.venue_name)].add(

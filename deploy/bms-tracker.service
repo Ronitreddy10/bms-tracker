@@ -1,0 +1,16 @@
+# Linux (Raspberry Pi / VPS): sudo cp deploy/bms-tracker.service /etc/systemd/system/
+# edit User and paths, then: sudo systemctl enable --now bms-tracker && journalctl -fu bms-tracker
+[Unit]
+Description=BookMyShow show tracker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/bms-tracker
+ExecStart=/home/pi/bms-tracker/.venv/bin/python -m bms_tracker run
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

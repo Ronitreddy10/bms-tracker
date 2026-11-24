@@ -1,0 +1,44 @@
+# Copy to config.yaml and edit.  Secrets go in .env (see .env.example).
+
+city: hyderabad
+
+# Polling. Keep these gentle: this runs 24/7 and BookMyShow will block an IP that hammers it.
+interval_seconds: 180        # one showtimes pass every ~3 min
+jitter_seconds: 45           # + random 0-45 s so requests don't look clockwork
+seat_check_every: 2          # read seat maps every 2nd pass (~6 min)
+listing_check_minutes: 20    # how often to re-scan the city's movie listings for new formats/languages
+request_gap_seconds: 2.5     # minimum pause between any two requests
+max_backoff_seconds: 1800    # on errors/403s, back off exponentially up to 30 min
+heartbeat_hours: 24          # daily "still alive" ping (0 to turn off)
+
+watches:
+  # 1) Doomsday in Prasads' PCX (large-format) screen: new shows, new dates, rows unlocking.
+  - name: Doomsday · Prasads PCX
+    movie: avengers doomsday          # matched against BMS listing slugs; or pin event_codes: [ET00xxxxxx]
+    venues: [prasad]                  # theatre-name keyword or BMS venue code
+    formats: [pcx, large screen]      # screen keywords; run `discover` to see exact names, then tighten
+    seats: true                       # watch the seat map for rows being opened up
+    rows: ""                          # e.g. "G-N" to only care about middle rows
+    seat_release_threshold: 4
+    city_wide_alerts: true            # also ping when Doomsday bookings open anywhere in Hyderabad
+
+  # 2) Every other Doomsday show at Prasads (the other screens), no seat maps.
+  - name: Doomsday · Prasads other screens
+    movie: avengers doomsday
+    venues: [prasad]
+    exclude_formats: [pcx, large screen]
+
+  # 3) Doomsday in Dolby Cinema at Allu Cinemas (Kokapet).
+  - name: Doomsday · Allu Cinemas Dolby
+    movie: avengers doomsday
+    venues: [allu]
+    formats: [dolby]
+    seats: true
+
+  # 4) Allu Arjun's next film in any Dolby Cinema screen. Fill in the title once it's on BMS
+  #    (the watch alerts the moment a listing with that name appears in the city).
+  - name: Allu Arjun film · Dolby Cinema
+    movie: CHANGE-ME-title
+    formats: [dolby cinema]
+    seats: true
+    disabled: true                    # remove this line after setting the title

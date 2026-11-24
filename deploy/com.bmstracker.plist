@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- macOS: runs the tracker at login and restarts it if it dies.
+     Replace /Users/YOU/bms-tracker with the real folder, then:
+       cp deploy/com.bmstracker.plist ~/Library/LaunchAgents/
+       launchctl load ~/Library/LaunchAgents/com.bmstracker.plist        -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.bmstracker</string>
+  <key>WorkingDirectory</key><string>/Users/YOU/bms-tracker</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/caffeinate</string><string>-i</string>
+    <string>/Users/YOU/bms-tracker/.venv/bin/python</string><string>-m</string><string>bms_tracker</string><string>run</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/Users/YOU/bms-tracker/tracker.log</string>
+  <key>StandardErrorPath</key><string>/Users/YOU/bms-tracker/tracker.log</string>
+</dict>
+</plist>
